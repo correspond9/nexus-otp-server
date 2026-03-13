@@ -22,6 +22,10 @@ app.use(cors());
 app.set('trust proxy', true);
 app.use(express.json());
 
+app.get('/', (_req: any, res: any) => {
+  res.send('Welcome to OTP service');
+});
+
 // Ensure DB connection for both local server mode and Vercel serverless mode.
 app.use(async (_req, _res, next) => {
   try {
@@ -33,11 +37,13 @@ app.use(async (_req, _res, next) => {
   }
 });
 
-app.get('/', (req: any, res: { send: (arg0: string) => void; }) => {
-  res.send('Welcome to OTP service');
-});
-
 app.use('/api', validateEmail, otpRoutes);
+
+// Global error handler — returns JSON so errors are visible
+app.use((err: any, _req: any, res: any, _next: any) => {
+  logger.error('Unhandled error', err?.message || err);
+  res.status(500).json({ error: err?.message || 'Internal server error' });
+});
 
 async function startServer(): Promise<void> {
   try {
